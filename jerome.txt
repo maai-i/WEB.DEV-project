@@ -1,0 +1,2 @@
+ssh-keygen -t rsa -b 4096 -C "alkhaduojama@gmail.com"
+git remote set-url origin git@github.com:maai-i/WEB.DEV-project.git
