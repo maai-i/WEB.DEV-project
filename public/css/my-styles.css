@@ -1,3 +1,145 @@
+/* --- Navigation/Header --- */
+header {
+    background: bisque;
+    border-bottom: 2px solid #f5deb3;
+    padding: 0 0 10px 0;
+}
+nav ul {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+nav ul li {
+    margin: 0;
+    padding: 0;
+}
+nav a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #00bcd4;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+}
+nav a:hover {
+    color: #f77f00;
+    text-decoration: underline;
+}
+
+/* --- Body and Containers --- */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #fff8f0;
+    margin: 0;
+    padding: 0;
+}
+main, .container, .mytextcard {
+    max-width: 800px;
+    margin: 30px auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 30px 40px;
+}
+.mytextcard {
+    background: #ffe5b4;
+    color: #6d4c1c;
+    font-size: 1.2rem;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    padding: 20px;
+}
+
+/* --- Headings and Paragraphs --- */
 h1 {
-    color: orange;
+    color: #ff9800;
+    font-family: 'Georgia', serif;
+    font-size: 2.2rem;
+    margin-bottom: 18px;
+    letter-spacing: 1px;
+}
+p {
+    color: #4e342e;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* --- Lists --- */
+ul, lu {
+    list-style: disc inside;
+    margin: 10px 0 10px 20px;
+    padding: 0;
+}
+li {
+    margin-bottom: 7px;
+    font-size: 1.05rem;
+    color: #5d4037;
+}
+
+/* --- About & Contact page --- */
+.about, .contact {
+    background: #fff3e0;
+    padding: 25px 30px;
+    border-radius: 8px;
+    margin: 30px auto;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+/* --- Login form --- */
+form, from {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #fffbe7;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    max-width: 350px;
+    margin: 30px auto;
+}
+label {
+    font-weight: 600;
+    color: #a0522d;
+    margin-bottom: 5px;
+}
+input[type="text"], input[type="password"] {
+    padding: 8px 12px;
+    border: 1px solid #e0b97d;
+    border-radius: 5px;
+    font-size: 1rem;
+    background: #fff;
+    margin-bottom: 10px;
+}
+input[type="submit"] {
+    background: #ff9800;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+input[type="submit"]:hover {
+    background: #f77f00;
+}
+
+/* --- Utility Classes --- */
+.mt-2 { margin-top: 16px; }
+.mb-2 { margin-bottom: 16px; }
+.center { text-align: center; }
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    main, .container, .mytextcard {
+        padding: 15px 5vw;
+    }
+    nav ul {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
