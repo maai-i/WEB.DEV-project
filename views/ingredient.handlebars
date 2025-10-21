@@ -1,12 +1,292 @@
-<div>
-    <h1>Ingredient</h1>
-    <div>
-        <lu>
-            {{#each ingredients}}
-                <li>
-                    {{iID}} - {{name}} - {{remark}}
-                </li>
-            {{/each}}
-        </lu>
+<div class="ingredients-page">
+  <style>
+    /* Scoped styles for this page only */
+    .ingredients-page {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .ingredients-page {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ingredients-title {
+      grid-column: 1 / -1;
+      margin: 0 0 8px 0;
+    }
+
+    .ingredient-form-card {
+      background: #fffbe6;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.06) inset;
+    }
+
+    .ingredient-form-card h2 {
+      margin-top: 0;
+    }
+
+    .ingredient-form-card label {
+      display: block;
+      font-weight: 600;
+      margin: 8px 0 4px;
+    }
+
+    .ingredient-form-card input {
+      width: 100%;
+      padding: 6px 8px;
+      box-sizing: border-box;
+    }
+
+    .ingredient-form-card button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px 10px;
+    }
+
+    .ingredients-list {
+      list-style: disc;
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    .ingredient-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap; /* prevent overlap on narrow widths */
+      padding: 8px 0;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .ingredient-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 200px;
+    }
+
+    .ingredient-actions {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Reset any global absolute/inline-block weirdness on forms inside list */
+    .ingredient-actions form {
+      display: inline-block;
+      position: static;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ingredient-actions button {
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .ingredients-error {
+      color: #b00020;
+      margin: 8px 0;
+      grid-column: 1 / -1;
+    }
+
+    /* Modal styles */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-dialog {
+      background: #fff;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .modal-header { padding: 12px 16px; border-bottom: 1px solid #eee; }
+    .modal-body { padding: 16px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid #eee; }
+  </style>
+
+  <h1 class="ingredients-title">Ingredients</h1>
+
+  {{#if error}}
+    <p class="ingredients-error">{{error}}</p>
+  {{/if}}
+
+  <!-- Left column: list -->
+  <div>
+    <ul class="ingredients-list">
+      {{#each ingredients}}
+        <li class="ingredient-item" data-id="{{iID}}">
+          <span class="ingredient-meta">
+            <strong class="ingredient-name">{{name}}</strong>
+            <span class="ingredient-remark">{{#if remark}}— {{remark}}{{/if}}</span>
+          </span>
+          <span class="ingredient-actions">
+            <button type="button"
+                    class="btn-edit"
+                    data-id="{{iID}}"
+                    data-name="{{name}}"
+                    data-remark="{{remark}}">Edit</button>
+            <form action="/ingredients/{{iID}}/delete" method="post">
+              <button type="submit">Delete</button>
+            </form>
+          </span>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+
+  <!-- Right column: create or edit form -->
+  <div class="ingredient-form-card">
+    {{#if editIngredient}}
+      <h2>Edit Ingredient</h2>
+      <form action="/ingredients/{{editIngredient.iID}}/edit" method="post">
+        <label for="name">Name:</label>
+        <input id="name" name="name" value="{{editIngredient.name}}" required>
+
+        <label for="remark">Remark:</label>
+        <input id="remark" name="remark" value="{{editIngredient.remark}}">
+
+        <button type="submit">Save Changes</button>
+      </form>
+      <form action="/ingredients" method="get" style="margin-top:8px;">
+        <button type="submit">Cancel</button>
+      </form>
+    {{else}}
+      <h2>Add Ingredient</h2>
+      <form action="/ingredients" method="post">
+        <label for="name">Name:</label>
+        <input id="name" name="name" required>
+
+        <label for="remark">Remark:</label>
+        <input id="remark" name="remark">
+
+        <button type="submit">Add Ingredient</button>
+      </form>
+    {{/if}}
+  </div>
+  <!-- Edit modal -->
+  <div id="edit-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <div class="modal-header">
+        <h2 id="edit-modal-title">Edit Ingredient</h2>
+      </div>
+      <form id="edit-form" action="#" method="post">
+        <div class="modal-body">
+          <label for="edit-name">Name:</label>
+          <input id="edit-name" name="name" required>
+
+          <label for="edit-remark">Remark:</label>
+          <input id="edit-remark" name="remark">
+        </div>
+        <div class="modal-footer">
+          <button type="submit">Save Changes</button>
+          <button type="button" id="edit-cancel">Cancel</button>
+        </div>
+      </form>
     </div>
+  </div>
+
+  <script>
+    (function(){
+      const backdrop = document.getElementById('edit-modal-backdrop');
+      const form = document.getElementById('edit-form');
+      const nameInput = document.getElementById('edit-name');
+      const remarkInput = document.getElementById('edit-remark');
+      const cancelBtn = document.getElementById('edit-cancel');
+      let currentEditId = null;
+
+      function openModal(id, name, remark){
+        currentEditId = id;
+        nameInput.value = name || '';
+        remarkInput.value = remark || '';
+        backdrop.style.display = 'block';
+        backdrop.setAttribute('aria-hidden', 'false');
+        nameInput.focus();
+      }
+      function closeModal(){
+        backdrop.style.display = 'none';
+        backdrop.setAttribute('aria-hidden', 'true');
+      }
+
+      document.addEventListener('click', function(e){
+        const btn = e.target.closest('.btn-edit');
+        if (btn) {
+          e.preventDefault();
+          openModal(btn.dataset.id, btn.dataset.name, btn.dataset.remark);
+        }
+      });
+
+      cancelBtn.addEventListener('click', function(){
+        closeModal();
+      });
+
+      form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        if (!currentEditId) return;
+
+        // Disable submit to prevent double-clicks
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const prevText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving…';
+
+        const name = (nameInput.value || '').trim();
+        const remark = (remarkInput.value || '').trim();
+
+        try {
+          const res = await fetch(`/ingredients/${currentEditId}/edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ name, remark }).toString()
+          });
+
+          if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(text || `Request failed with status ${res.status}`);
+          }
+
+          // Update the list item inline
+          const li = document.querySelector(`.ingredient-item[data-id="${currentEditId}"]`);
+          if (li) {
+            const nameEl = li.querySelector('.ingredient-name');
+            const remarkEl = li.querySelector('.ingredient-remark');
+            if (nameEl) nameEl.textContent = name;
+            if (remarkEl) remarkEl.textContent = remark ? `— ${remark}` : '';
+          }
+
+          // Close modal
+          closeModal();
+        } catch (err) {
+          alert('Failed to save changes. ' + (err && err.message ? err.message : ''));
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = prevText;
+        }
+      });
+
+      // Close when clicking outside the dialog
+      backdrop.addEventListener('click', function(e){
+        if (e.target === backdrop) closeModal();
+      });
+
+      // Escape to close
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && backdrop.style.display === 'block') closeModal();
+      });
+    })();
+  </script>
 </div>
