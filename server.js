@@ -4,11 +4,18 @@
 const express=require('express') //read the express library
 const sqlite3=require('sqlite3')
 const { engine }=require('express-handlebars') // Load the handelbars package for express
+const bcrypt=require('bcrypt') // to hash passwords
+const session=require('express-session') // to manage user sessions
+const connectSqlite3=require('connect-sqlite3') // to store sessions in a SQLite database
 
 const port=8080 // define the port
 const app=express() // create the express application
+const adminPassword='wde#2025' // the admin password
+
+
 
 app.use(express.static('public'))
+app.use(express.urlencoded({ extended: true }))
 
 app.engine('handlebars', engine()) // initialaze the engine to be handelbars
 app.set('view engine', 'handlebars') // set handelbars as the view engine
@@ -16,6 +23,21 @@ app.set('views', './views') // define the views directory to be ./views
 
 const dbFile='myRecipes.db'//--db
 db = new sqlite3.Database(dbFile)
+
+const SQLiteStore=connectSqlite3(session) // create the session store class
+
+app.use(session({ //define the session middleware
+    store: new SQLiteStore({db: "session-db.db"}),
+    "saveUninitialized": false,
+    "resave": false,
+    "secret": 'mySecret123#thisShouldBeLonger'
+}))
+
+app.use((req, res, next) => {
+    res.locals.session = req.session || {};
+    res.locals.user = req.session.user || null;
+    next();
+});
 
 // creates table Person at startup
 // db.run(`CREATE TABLE Person (pid INTEGER PRIMARY KEY, fname TEXT NOT NULL, lname
@@ -90,13 +112,74 @@ app.get('/ingredients', function (req, res){
         }
     })
 })
-
+// login form
 app.get('/login', (req, res) => {
     res.render('login.handlebars')
-})
+});
+// Login processing
+app.post('/login', (req, res) => {
+    console.log('0')
+    console.log('req.body: ', req.body);
+    // Alternative 1
+    const { username, password } = req.body;
+    // Alternative 2
+    // const username = req.query.username;
+    // const password = req.query.password;
+    console.log('username: '+username)
+    console.log('password: '+password)
+    //verification steps
+    if(!username || !password) {
+        res.status(400).send('Bad Request: Missing username or password.')
+    }
 
-app.get('/rawpersons', function (err, res){
-    db.all('SELLECT * FROM Person', function (err, rowPerson) {
+    console.log('1')
+    db.get('SELECT * FROM User WHERE username = ?', [username], (err, user) => {
+        if(err) {
+        console.error('Database error:', err);
+        res.render('login.handlebars', { error: 'Internal server error. Please try again later.' });
+        }
+        db.get('SELECT * FROM User WHERE userName = ?', [username], (err, user) => {
+            if(err) {
+                console.error('Database error:', err);
+                res.render('login.handlebars', { error: 'Internal server error. Please try again later.' });
+            }
+            if(!user) {
+                return res.render('login.handlebars', { error: 'Invalid username or password.' });
+            }
+            bcrypt.compare(password, user.password, (err, result) => {
+                if(err || !result) {
+                    console.error('Error comparing passwords:', err);
+                    return res.render('login.handlebars', { error: 'Invalid username or password.' });
+                }
+
+            req.session.user = {
+                id: user.id,
+                username: user.username || user.userName,
+                isAdmin: username === 'admin' // Mark user as admin if username is 'admin'
+            };
+
+            console.log("User logged in:", req.session.user);
+            res.redirect('/'); // Redirect to home page or dashboard
+            });//logout prossessing
+        });
+    });
+});
+
+//logout prossessing 
+app.post('/logout', (req, res) => {
+    req.session.destroy((err) => {// destroy the session
+        if (err) {
+            console.log('Error destroying session:', err);
+            res.redirect('/'); // Redirect to home page even if error occurs
+        }else{
+            console.log('loged out successfully.');
+            res.redirect('/'); // Redirect to home page after logout
+        }
+    });
+});
+// raw data of persons
+app.get('/rawpersons', function (req, res){
+    db.all('SELECT * FROM Person', function (err, rowPerson) {
         if(err){
             console.log('Error: '+err)
             res.status(500).send('Internal Server Error')
@@ -108,7 +191,19 @@ app.get('/rawpersons', function (err, res){
     })
 })
 
+function hashPassword(pw, saltRounds) {
+    bcrypt.hash(pw, saltRounds, function(err, hash) {
+        if(err) {
+            console.error('---> Error hashing password:', err);
+        } 
+        else {
+            console.log('---> Hashed password:', hash);
+        }
+    });
+}
+
 
 app.listen(port, () => { // listen on the port 
+    hashPassword('wdf#2025', 12); // hash the password 'wdf#2025' with 12 salt rounds
     console.log(`server up and running on http://localhost:${port}...`)
 })

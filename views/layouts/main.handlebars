@@ -10,12 +10,21 @@
      <header> 
         <nav>
             <ul>
-                <li><a href="/"> Home</a></li><br />
+                <li><a href="/"> Home</a></li>
                 <li><a href="/recipes">Recipes</a></li>
-                 <li><a href="/ingredients">Ingredients</a></li>
-                 <li><a href="/login">Login</a></li>
-                <li><a href="/about"> About</a></li>
+                <li><a href="/ingredients">Ingredients</a></li>
+                 <li><a href="/about"> About</a></li>
                 <li><a href="/contact">Contact</a></li>
+                {{#if user}}
+                    <li>Hello, {{user.username}}!</li>
+                    <li>
+                        <form action="/logout" method="post" style="display:inline;">
+                            <button type="submit" class="logout-button">Logout</button>
+                        </form>
+                    </li>
+                {{else}}
+                    <a href="/login">Login</a>
+                {{/if}}
             </ul>
         </nav>
     </header>
