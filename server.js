@@ -57,7 +57,7 @@ app.use(
     secret: 'mySecret123#thisShouldBeLonger',
   }),
 );
-
+// make session data available in all views
 app.use((req, res, next) => {
   res.locals.session = req.session || {};
   res.locals.user = req.session.user || null;
@@ -128,7 +128,7 @@ app.get('/recipes', function (req, res) {
 });
 
 
-
+// Ingredients page
 app.get('/ingredients', function (req, res) {
   db.all('SELECT * FROM Ingredient', (error, listOfIngredients) => {
     if (error) {
@@ -466,7 +466,7 @@ app.get('/rawpersons', function (req, res) {
     }
   });
 });
-
+// hash password 'wdf#2025' with salt rounds
 function hashPassword(pw, saltRounds) {
   bcrypt.hash(pw, saltRounds, function (err, hash) {
     if (err) {

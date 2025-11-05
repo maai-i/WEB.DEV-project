@@ -145,3 +145,163 @@ input[type="submit"]:hover {
         gap: 10px;
     }
 }
+<style>
+    /* Scoped styles for this page only */
+    .ingredients-page {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .ingredients-page {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ingredients-title {
+      grid-column: 1 / -1;
+      margin: 0 0 8px 0;
+    }
+
+    .ingredient-form-card {
+      background: #fffbe6;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.06) inset;
+    }
+
+    .ingredient-form-card h2 {
+      margin-top: 0;
+    }
+
+    .ingredient-form-card label {
+      display: block;
+      font-weight: 600;
+      margin: 8px 0 4px;
+    }
+
+    .ingredient-form-card input {
+      width: 100%;
+      padding: 6px 8px;
+      box-sizing: border-box;
+    }
+
+    .ingredient-form-card button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px 10px;
+    }
+
+    .ingredients-list {
+      list-style: disc;
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    .ingredient-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap; /* prevent overlap on narrow widths */
+      padding: 8px 0;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .ingredient-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 200px;
+    }
+
+    .ingredient-actions {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Reset any global absolute/inline-block weirdness on forms inside list */
+    .ingredient-actions form {
+      display: inline-block;
+      position: static;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ingredient-actions button {
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .ingredients-error {
+      color: #b00020;
+      margin: 8px 0;
+      grid-column: 1 / -1;
+    }
+
+    /* Modal styles */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-dialog {
+      background: #fff;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .modal-header { padding: 12px 16px; border-bottom: 1px solid #eee; }
+    .modal-body { padding: 16px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid #eee; }
+  </style>
+
+.home-background {
+  background-image: url('../images/cake.jpg'); /* Path till bilden */
+  background-size: cover; /* Fyll hela skärmen */
+  background-position: center center; /* Centrera bilden */
+  background-repeat: no-repeat; /* Ingen upprepning */
+  min-height: 100vh; /* Täck hela höjden av sidan */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 120px; /* Utrymme under navbar */
+  background-attachment: fixed; /* Skapar "parallax"-effekt */
+}
+
+/* Valfri toning för textläsbarhet */
+.home-background::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 248, 240, 0.7); /* lätt ljus overlay */
+  z-index: 0;
+}
+
+#principal {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: #3a1f04;
+}
+
+/* ✅ Lägg till detta allra sist */
+nav {
+  position: relative;
+  z-index: 10; /* gör att menyn ligger ovanpå bakgrund och overlay */
+}
+
+
+/* AI was used for CSS improvements */
