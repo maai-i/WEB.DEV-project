@@ -64,6 +64,13 @@ app.use((req, res, next) => {
   next();
 });
 
+function requireAdmin(req, res, next) {
+  if (!req.session.user || !req.session.user.isAdmin) {
+    return res.status(403).send('Forbidden: Admin access required');
+  }
+  next();
+}
+
 // creates table Person at startup
 // db.run(`CREATE TABLE Person (pid INTEGER PRIMARY KEY, fname TEXT NOT NULL, lname
 // TEXT NOT NULL, age INTEGER, email TEXT)`, function (error) {
@@ -143,7 +150,7 @@ app.get('/ingredients', function (req, res) {
 // --- Ingredient CRUD used by the Ingredients page ---
 
 // Create an ingredient (form on the right column)
-app.post('/ingredients', (req, res) => {
+app.post('/ingredients', requireAdmin, (req, res) => {
   const { name, remark } = req.body || {};
 
   const renderWithError = (msg) => {
@@ -174,7 +181,7 @@ app.post('/ingredients', (req, res) => {
 });
 //hehe
 // Show edit form for a single ingredient (triggered by the Edit button)
-app.get('/ingredients/:id/edit', (req, res) => {
+app.get('/ingredients/:id/edit', requireAdmin, (req, res) => {
   const { id } = req.params;
   db.get('SELECT * FROM Ingredient WHERE iID = ? LIMIT 1', [id], (err, ingredient) => {
     if (err) {
@@ -190,7 +197,7 @@ app.get('/ingredients/:id/edit', (req, res) => {
 });
 
 // Handle edit form submission (you can point the edit form action here)
-app.post('/ingredients/:id/edit', (req, res) => {
+app.post('/ingredients/:id/edit', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { name, remark } = req.body || {};
 
@@ -213,7 +220,7 @@ app.post('/ingredients/:id/edit', (req, res) => {
 });
 
 // Delete an ingredient (triggered by the Delete button)
-app.post('/ingredients/:id/delete', (req, res) => {
+app.post('/ingredients/:id/delete', requireAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM Ingredient WHERE iID = ?';
   runWithRetry(sql, [id], function (err) {
@@ -230,7 +237,7 @@ app.post('/ingredients/:id/delete', (req, res) => {
 // For example, change to (title, details) or similar if needed.
 
 // Create a recipe
-app.post('/api/recipes', (req, res) => {
+app.post('/api/recipes', requireAdmin, (req, res) => {
   const { name, description } = req.body || {};
   if (!name) {
     return res.status(400).json({ error: "'name' is required" });
@@ -249,7 +256,7 @@ app.post('/api/recipes', (req, res) => {
 });
 
 // Update a recipe (partial update)
-app.put('/api/recipes/:id', (req, res) => {
+app.put('/api/recipes/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { name, description } = req.body || {};
   if (name === undefined && description === undefined) {
@@ -274,7 +281,7 @@ app.put('/api/recipes/:id', (req, res) => {
 });
 
 // Delete a recipe
-app.delete('/api/recipes/:id', (req, res) => {
+app.delete('/api/recipes/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM Recipe WHERE rowid = ?';
   runWithRetry(sql, [id], function (err) {

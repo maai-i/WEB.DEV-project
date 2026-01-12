@@ -12,161 +12,145 @@
         <li class="ingredient-item" data-id="{{iID}}">
           <span class="ingredient-meta">
             <strong class="ingredient-name">{{name}}</strong>
-            <span class="ingredient-remark">{{#if remark}}— {{remark}}{{/if}}</span>
+            <span class="ingredient-remark">
+              {{#if remark}}— {{remark}}{{/if}}
+            </span>
           </span>
-          <span class="ingredient-actions">
-            <button type="button"
-                    class="btn-edit"
-                    data-id="{{iID}}"
-                    data-name="{{name}}"
-                    data-remark="{{remark}}">Edit</button>
-            <form action="/ingredients/{{iID}}/delete" method="post">
-              <button type="submit">Delete</button>
-            </form>
-          </span>
+
+          {{#if ../user.isAdmin}}
+            <span class="ingredient-actions">
+              <button type="button"
+                      class="btn-edit"
+                      data-id="{{iID}}"
+                      data-name="{{name}}"
+                      data-remark="{{remark}}">
+                Edit
+              </button>
+
+              <form action="/ingredients/{{iID}}/delete" method="post">
+                <button type="submit">Delete</button>
+              </form>
+            </span>
+          {{/if}}
         </li>
       {{/each}}
     </ul>
   </div>
 
-  <!-- Right column: create or edit form -->
+  <!-- Right column -->
   <div class="ingredient-form-card">
-    {{#if editIngredient}}
-      <h2>Edit Ingredient</h2>
-      <form action="/ingredients/{{editIngredient.iID}}/edit" method="post">
-        <label for="name">Name:</label>
-        <input id="name" name="name" value="{{editIngredient.name}}" required>
+    {{#if user.isAdmin}}
 
-        <label for="remark">Remark:</label>
-        <input id="remark" name="remark" value="{{editIngredient.remark}}">
+      {{#if editIngredient}}
+        <h2>Edit Ingredient</h2>
+        <form action="/ingredients/{{editIngredient.iID}}/edit" method="post">
+          <label for="name">Name:</label>
+          <input id="name" name="name" value="{{editIngredient.name}}" required>
 
-        <button type="submit">Save Changes</button>
-      </form>
-      <form action="/ingredients" method="get" style="margin-top:8px;">
-        <button type="submit">Cancel</button>
-      </form>
+          <label for="remark">Remark:</label>
+          <input id="remark" name="remark" value="{{editIngredient.remark}}">
+
+          <button type="submit">Save Changes</button>
+        </form>
+
+        <form action="/ingredients" method="get" style="margin-top:8px;">
+          <button type="submit">Cancel</button>
+        </form>
+
+      {{else}}
+        <h2>Add Ingredient</h2>
+        <form action="/ingredients" method="post">
+          <label for="name">Name:</label>
+          <input id="name" name="name" required>
+
+          <label for="remark">Remark:</label>
+          <input id="remark" name="remark">
+
+          <button type="submit">Add Ingredient</button>
+        </form>
+      {{/if}}
+
     {{else}}
-      <h2>Add Ingredient</h2>
-      <form action="/ingredients" method="post">
-        <label for="name">Name:</label>
-        <input id="name" name="name" required>
-
-        <label for="remark">Remark:</label>
-        <input id="remark" name="remark">
-
-        <button type="submit">Add Ingredient</button>
-      </form>
+      <p class="ingredients-info">
+        Log in as admin to add or edit ingredients.
+      </p>
     {{/if}}
   </div>
-  <!-- Edit modal -->
-  <div id="edit-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
-    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
-      <div class="modal-header">
-        <h2 id="edit-modal-title">Edit Ingredient</h2>
+
+  {{#if user.isAdmin}}
+    <!-- Edit modal -->
+    <div id="edit-modal-backdrop"
+         class="modal-backdrop"
+         aria-hidden="true"
+         style="display:none;">
+      <div class="modal-dialog"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="edit-modal-title">
+
+        <div class="modal-header">
+          <h2 id="edit-modal-title">Edit Ingredient</h2>
+        </div>
+
+        <form id="edit-form" action="#" method="post">
+          <div class="modal-body">
+            <label for="edit-name">Name:</label>
+            <input id="edit-name" name="name" required>
+
+            <label for="edit-remark">Remark:</label>
+            <input id="edit-remark" name="remark">
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit">Save Changes</button>
+            <button type="button" id="edit-cancel">Cancel</button>
+          </div>
+        </form>
       </div>
-      <form id="edit-form" action="#" method="post">
-        <div class="modal-body">
-          <label for="edit-name">Name:</label>
-          <input id="edit-name" name="name" required>
-
-          <label for="edit-remark">Remark:</label>
-          <input id="edit-remark" name="remark">
-        </div>
-        <div class="modal-footer">
-          <button type="submit">Save Changes</button>
-          <button type="button" id="edit-cancel">Cancel</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <script>
-    (function(){
-      const backdrop = document.getElementById('edit-modal-backdrop');
-      const form = document.getElementById('edit-form');
-      const nameInput = document.getElementById('edit-name');
-      const remarkInput = document.getElementById('edit-remark');
-      const cancelBtn = document.getElementById('edit-cancel');
-      let currentEditId = null;
+    <script>
+      (function(){
+        const backdrop = document.getElementById('edit-modal-backdrop');
+        const form = document.getElementById('edit-form');
+        const nameInput = document.getElementById('edit-name');
+        const remarkInput = document.getElementById('edit-remark');
+        const cancelBtn = document.getElementById('edit-cancel');
+        let currentEditId = null;
 
-      function openModal(id, name, remark){
-        currentEditId = id;
-        nameInput.value = name || '';
-        remarkInput.value = remark || '';
-        backdrop.style.display = 'block';
-        backdrop.setAttribute('aria-hidden', 'false');
-        nameInput.focus();
-      }
-      function closeModal(){
-        backdrop.style.display = 'none';
-        backdrop.setAttribute('aria-hidden', 'true');
-      }
+        document.addEventListener('click', function(e){
+          const btn = e.target.closest('.btn-edit');
+          if (!btn) return;
 
-      document.addEventListener('click', function(e){
-        const btn = e.target.closest('.btn-edit');
-        if (btn) {
           e.preventDefault();
-          openModal(btn.dataset.id, btn.dataset.name, btn.dataset.remark);
-        }
-      });
+          currentEditId = btn.dataset.id;
+          nameInput.value = btn.dataset.name || '';
+          remarkInput.value = btn.dataset.remark || '';
+          backdrop.style.display = 'block';
+        });
 
-      cancelBtn.addEventListener('click', function(){
-        closeModal();
-      });
+        cancelBtn.addEventListener('click', () => {
+          backdrop.style.display = 'none';
+        });
 
-      form.addEventListener('submit', async function(e){
-        e.preventDefault();
-        if (!currentEditId) return;
+        form.addEventListener('submit', async function(e){
+          e.preventDefault();
+          if (!currentEditId) return;
 
-        // Disable submit to prevent double-clicks
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const prevText = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Saving…';
-
-        const name = (nameInput.value || '').trim();
-        const remark = (remarkInput.value || '').trim();
-
-        try {
-          const res = await fetch(`/ingredients/${currentEditId}/edit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ name, remark }).toString()
+          const body = new URLSearchParams({
+            name: nameInput.value.trim(),
+            remark: remarkInput.value.trim()
           });
 
-          if (!res.ok) {
-            const text = await res.text().catch(() => '');
-            throw new Error(text || `Request failed with status ${res.status}`);
-          }
+          await fetch(`/ingredients/${currentEditId}/edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body
+          });
 
-          // Update the list item inline
-          const li = document.querySelector(`.ingredient-item[data-id="${currentEditId}"]`);
-          if (li) {
-            const nameEl = li.querySelector('.ingredient-name');
-            const remarkEl = li.querySelector('.ingredient-remark');
-            if (nameEl) nameEl.textContent = name;
-            if (remarkEl) remarkEl.textContent = remark ? `— ${remark}` : '';
-          }
-
-          // Close modal
-          closeModal();
-        } catch (err) {
-          alert('Failed to save changes. ' + (err && err.message ? err.message : ''));
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = prevText;
-        }
-      });
-
-      // Close when clicking outside the dialog
-      backdrop.addEventListener('click', function(e){
-        if (e.target === backdrop) closeModal();
-      });
-
-      // Escape to close
-      document.addEventListener('keydown', function(e){
-        if (e.key === 'Escape' && backdrop.style.display === 'block') closeModal();
-      });
-    })();
-  </script>
+          window.location.reload();
+        });
+      })();
+    </script>
+  {{/if}}
 </div>
