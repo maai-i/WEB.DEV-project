@@ -1,4 +1,16 @@
+# Node
 node_modules/
+
+# Environment variables
 .env
+
+# macOS
 .DS_Store
+
+# Build output
 dist/
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm
