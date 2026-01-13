@@ -13,11 +13,21 @@ const app = express(); // create the express application
 const adminPassword = 'wde#2025'; // the admin password
 const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || 'admin123';
 
+const RECIPES_PER_PAGE = 3; // for pagination
+
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.engine('handlebars', engine()); // initialaze the engine to be handelbars
+app.engine('handlebars', engine({
+  defaultLayout: 'main',
+  helpers: {
+    increment: (value) => value + 1,
+    decrement: (value) => value - 1,
+    gt: (a, b) => a > b,
+    lt: (a, b) => a < b
+  }
+}));
 app.set('view engine', 'handlebars'); // set handelbars as the view engine
 app.set('views', './views'); // define the views directory to be ./views
 
@@ -123,17 +133,93 @@ app.get('/contact', (req, res) => {
 });
 
 app.get('/recipes', function (req, res) {
-  db.all('SELECT * FROM Recipe', (error, listOfRecipes) => {
-    if (error) {
-      console.log('ERROR: ', error); // error: diplay in terminal
-      res.redirect('/');
-    } else {
-      const model = { recipes: listOfRecipes };
-      res.render('recipes.handlebars', model);
+  const page = Number(req.query.page) || 1;
+  const limit = RECIPES_PER_PAGE;
+  const offset = (page - 1) * limit;
+
+  const sqlRecipes = `
+    SELECT * FROM Recipe
+    LIMIT ? OFFSET ?
+  `;
+
+  const sqlCount = `
+    SELECT COUNT(*) AS total FROM Recipe
+  `;
+
+  db.get(sqlCount, [], (err, countResult) => {
+    if (err) {
+      console.log(err);
+      return res.redirect('/');
     }
+
+    const totalRecipes = countResult.total;
+    const totalPages = Math.ceil(totalRecipes / limit);
+
+    db.all(sqlRecipes, [limit, offset], (error, listOfRecipes) => {
+      if (error) {
+        console.log(error);
+        return res.redirect('/');
+      }
+
+      const model = {
+        recipes: listOfRecipes,
+        currentPage: page,
+        totalPages: totalPages
+      };
+
+      res.render('recipes.handlebars', model);
+    });
   });
 });
 
+app.get("/recipes/:id", (req, res) => {
+  const recipeId = Number(req.params.id);
+  if (!Number.isInteger(recipeId)) {
+    return res.status(400).send("Invalid recipe id");
+  }
+
+  const sql = `
+    SELECT
+      r.rID              AS recipeId,
+      r.name             AS recipeName,
+      r.Origen           AS origin,
+      i.iID              AS ingredientId,
+      i.name             AS ingredientName,
+      i.remark           AS ingredientRemark,
+      ri.quantity        AS quantity
+    FROM Recipe r
+    INNER JOIN RecipeIngredient ri ON r.rID = ri.rID
+    INNER JOIN Ingredient i        ON i.iID = ri.iID
+    WHERE r.rID = ?
+    ORDER BY i.name;
+  `;
+
+  db.all(sql, [recipeId], (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Database error");
+    }
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).send("Recipe not found");
+    }
+
+    // Build view model
+    const recipe = {
+      id: rows[0].recipeId,
+      name: rows[0].recipeName,
+      origin: rows[0].origin,
+      ingredients: rows.map(r => ({
+        id: r.ingredientId,
+        name: r.ingredientName,
+        remark: r.ingredientRemark,
+        quantity: r.quantity
+      }))
+    };
+
+    res.render("recipe-detail", { recipe });
+  });
+});
 
 // Ingredients page
 app.get('/ingredients', function (req, res) {

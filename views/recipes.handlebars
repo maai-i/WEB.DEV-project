@@ -4,9 +4,26 @@
         <lu>
             {{#each recipes}}
                 <li>
+                  <a href="/recipes/{{rID}}">
                     {{rID}} - {{name}} - {{Origen}}
+                  </a>
                 </li>
             {{/each}}
         </lu>
     </div>
 </div>
+
+<div style="margin-top: 20px;">
+  {{#if (gt currentPage 1)}}
+    <a href="/recipes?page={{decrement currentPage}}">Previous</a>
+  {{/if}}
+
+  <span style="margin: 0 10px;">
+    Page {{currentPage}} of {{totalPages}}
+  </span>
+
+  {{#if (lt currentPage totalPages)}}
+    <a href="/recipes?page={{increment currentPage}}">Next</a>
+  {{/if}}
+</div>
+

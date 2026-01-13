@@ -1,0 +1,15 @@
+<h1>{{recipe.name}}</h1>
+<p><strong>Origin:</strong> {{recipe.origin}}</p>
+
+<h2>Ingredients</h2>
+<ul>
+  {{#each recipe.ingredients}}
+    <li>
+      <strong>{{name}}</strong>
+      {{#if remark}}— {{remark}}{{/if}}
+      ({{quantity}})
+    </li>
+  {{/each}}
+</ul>
+
+<a href="/recipes">← Back to recipes</a>
